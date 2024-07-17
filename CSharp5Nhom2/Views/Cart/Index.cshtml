@@ -1,0 +1,201 @@
+﻿@model IEnumerable<CSharp5Nhom2.Models.GioHangChiTiet>
+
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    List<string> extensions = new List<string>() { ".jpg", ".png", ".tiff", ".webp", ".jpeg" };
+}
+
+@if (!Model.Any())
+{
+    <p>Chưa có sản phẩm nào được thêm vào giỏ hàng.</p>
+}
+else
+{
+    <form id="updateCartForm">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Tên sách</th>
+                    <th>Hình ảnh</th>
+                    <th>Đơn giá</th>
+                    <th style="width: 150px;">Số lượng</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="selectedItems" value="@item.IDGHCT" />
+                        </td>
+                        <td>@Html.DisplayFor(modelItem => item.Sach.TenSach)</td>
+                        <td>
+                            <div class="image-container">
+                                @{
+                                    var extension = System.IO.Path.GetExtension(item.Sach.HinhAnh);
+                                }
+                                @if (extensions.Contains(extension))
+                                {
+                                    <img src="~/img/@item.Sach.HinhAnh" class="img-fluid" style="height: 70px;width: 70px;" alt="Hình ảnh sản phẩm" />
+                                }
+                            </div>
+                        </td>
+                        <td>@item.Sach.Gia</td>
+                        <td style="width: 150px;">
+                            <div class="input-group">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default btn-number" data-type="minus" data-field="quant_@item.IDGHCT">
+                                        <span class="glyphicon glyphicon-minus">-</span>
+                                    </button>
+                                </span>
+                                <input type="text" name="quant_@item.IDGHCT" class="form-control input-number" value="@item.SoLuong" min="1" max="@item.Sach.SoLuong" data-stock="@item.Sach.SoLuong">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default btn-number" data-type="plus" data-field="quant_@item.IDGHCT">
+                                        <span class="glyphicon glyphicon-plus">+</span>
+                                    </button>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger">
+                                @Html.ActionLink("Delete", "Delete", new { IDGHCT = item.IDGHCT }, new { @class = "text-white" })
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </form>
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-primary" id="updateCartButton">Cập nhật giỏ hàng</button>
+        <form method="post" asp-action="Purchase" asp-controller="HoaDon" id="purchaseForm">
+            <input type="hidden" name="selectedItems" id="selectedItems" />
+            <button type="submit" class="btn btn-success">Thanh toán</button>
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="text-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+        </form>
+    </div>
+}
+
+<style>
+    a.text-white {
+        text-decoration: none;
+    }
+</style>
+
+<div>
+    <a asp-action="Index" asp-controller="Home" class="btn btn-danger mt-3">Tiếp tục mua hàng</a>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-number').click(function (e) {
+                e.preventDefault();
+
+                var fieldName = $(this).attr('data-field');
+                var type = $(this).attr('data-type');
+                var input = $("input[name='" + fieldName + "']");
+                var currentVal = parseInt(input.val());
+                var maxValue = parseInt(input.attr('max'));
+                var stockQuantity = parseInt(input.attr('data-stock'));
+
+                if (!isNaN(currentVal)) {
+                    if (type == 'minus') {
+                        if (currentVal > 1) {
+                            input.val(currentVal - 1).change();
+                        }
+                        if (parseInt(input.val()) == 1) {
+                            $(this).attr('disabled', true);
+                        }
+                    } else if (type == 'plus') {
+                        if (currentVal < stockQuantity) {
+                            input.val(currentVal + 1).change();
+                        } else {
+                            alert("Số lượng vượt quá số lượng trong kho");
+                            return;
+                        }
+                        if (parseInt(input.val()) == maxValue || parseInt(input.val()) == stockQuantity) {
+                            $(this).attr('disabled', true);
+                        }
+                    }
+                } else {
+                    input.val(1);
+                }
+
+                $(".btn-number[data-type='minus'][data-field='" + fieldName + "']").removeAttr('disabled');
+                $(".btn-number[data-type='plus'][data-field='" + fieldName + "']").removeAttr('disabled');
+            });
+
+            $('.input-number').change(function () {
+                var minValue = parseInt($(this).attr('min'));
+                var maxValue = parseInt($(this).attr('max'));
+                var stockQuantity = parseInt($(this).attr('data-stock'));
+                var valueCurrent = parseInt($(this).val());
+
+                var name = $(this).attr('name');
+                if (valueCurrent >= minValue) {
+                    $(".btn-number[data-type='minus'][data-field='" + name + "']").removeAttr('disabled')
+                } else {
+                    $(this).val(minValue);
+                }
+                if (valueCurrent <= maxValue && valueCurrent <= stockQuantity) {
+                    $(".btn-number[data-type='plus'][data-field='" + name + "']")
+                } else {
+                    alert("Số lượng vượt quá số lượng trong kho");
+                    $(this).val(stockQuantity);
+                }
+            });
+
+            $(".input-number").keydown(function (e) {
+                if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
+                    (e.keyCode == 65 && e.ctrlKey === true) ||
+                    (e.keyCode >= 35 && e.keyCode <= 39)) {
+                    return;
+                }
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+
+            $('#updateCartButton').click(function () {
+                var quantities = {};
+                $('input[name^="quant_"]').each(function () {
+                    quantities[$(this).attr('name')] = $(this).val();
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("UpdateCart", "Cart")',
+                    data: JSON.stringify(quantities),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.success) {
+                            location.reload();
+                        }
+                    }
+                });
+            });
+
+            $('#purchaseForm').submit(function (e) {
+                var selectedItems = $('input[name="selectedItems"]:checked').map(function () {
+                    return this.value;
+                }).get().join(',');
+
+                if (!selectedItems) {
+                    e.preventDefault();
+                    alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+                } else {
+                    $('#selectedItems').val(selectedItems);
+                }
+            });
+        });
+    </script>
+}

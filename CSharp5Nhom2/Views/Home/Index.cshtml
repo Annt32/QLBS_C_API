@@ -1,0 +1,109 @@
+﻿@model IEnumerable<CSharp5Nhom2.Models.Sach>
+
+@{
+    ViewData["Title"] = "Index";
+    List<string> extensions = new List<string>() { ".jpg", ".png", ".tiff", ".webp", ".jpeg" };
+}
+
+<hr>
+<h3 class="text-md-start">Danh Mục Sách Bán Chạy</h3>
+<hr>
+<div class="container mt-4">
+    <div class="row">
+        @foreach (var s in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="bg-light d-flex justify-content-center align-items-center" style="height: 300px;">
+                        @{
+                            var extension = System.IO.Path.GetExtension(s.HinhAnh);
+                        }
+                        @if (extensions.Contains(extension))
+                        {
+                            <img src="~/img/@s.HinhAnh" class="img-fluid" style="max-height: 100%; max-width: 100%;" />
+                        }
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">@s.TenSach</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="fw-bold text-primary me-2">@s.Gia<span> đ</span></span>
+                            <span class="text-success me-2">Còn lại @s.SoLuong</span>
+                        </div>
+                        <div class="product-buttons d-flex justify-content-between">
+                            <form asp-action="AddToCart" asp-controller="Sach" method="post" class="d-inline">
+                                <input type="hidden" name="IDSach" value="@s.IDSach" />
+                                <input type="hidden" name="SoLuong" value="1" />
+                                <button type="submit" class="btn btn-outline-danger rounded-pill w-100">
+                                    Add To Cart
+                                </button>
+                            </form>
+
+                            <a @*asp-action="BuyNow" asp-controller="Home"*@ class="btn btn-danger rounded-pill w-50 ms-2">Buy Now</a>
+                        </div>
+                        @if (TempData[$"max_{s.IDSach}"] != null)
+                        {
+                            <div class="text-danger mt-2">
+                                @TempData[$"max_{s.IDSach}"]
+                            </div>
+                        }
+                        @if (TempData[$"error_{s.IDSach}"] != null)
+                        {
+                            <div class="text-danger mt-2">
+                                @TempData[$"error_{s.IDSach}"]
+                            </div>
+                        }
+                        @if (TempData["ErrorMessage"] != null)
+                        {
+                            <div class="text-danger mt-2">
+                                @TempData["ErrorMessage"]
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card img {
+            transition: opacity 0.2s ease-in-out;
+            opacity: 0.9;
+        }
+
+            .card img:hover {
+                opacity: 1;
+            }
+
+    .product-buttons button, .product-buttons a {
+        margin: 5px 0;
+    }
+
+    .product-buttons .btn-outline-danger {
+        border: 1px solid #dc3545;
+        color: #dc3545;
+    }
+
+        .product-buttons .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+    .product-buttons .btn-danger {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+        .product-buttons .btn-danger:hover {
+            background-color: #c82333;
+            color: #fff;
+        }
+</style>

@@ -1,0 +1,46 @@
+﻿@model IEnumerable<CSharp5Nhom2.Models.Sach>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.TenSach)</th>
+            <th>@Html.DisplayNameFor(model => model.Gia)</th>
+            <th>@Html.DisplayNameFor(model => model.SoLuong)</th>
+            <th>@Html.DisplayNameFor(model => model.HinhAnh)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.TenSach)</td>
+                <td>@Html.DisplayFor(modelItem => item.Gia)</td>
+                <td>@Html.DisplayFor(modelItem => item.SoLuong)</td>
+                <td>
+                    @{
+                        var extension = System.IO.Path.GetExtension(item.HinhAnh);
+                    }
+                    @if (@extension.Contains(extension))
+                    {
+                        <img src="~/img/@item.HinhAnh" class="mw-100 mh-100" style="width: 50px; height: 50px;" />
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink("Update", "Update", new { IDSach = item.IDSach }) |
+                    @Html.ActionLink("Details", "Details", new { IDSach = item.IDSach }) |
+                    @Html.ActionLink("Delete", "Delete", new { IDSach = item.IDSach })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

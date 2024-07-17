@@ -1,0 +1,46 @@
+﻿@model CSharp5Nhom2.Models.Sach
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Đường dẫn đến layout chung
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <img src="~/img/@Model.HinhAnh" class="card-img-top" alt="Product Image">
+                <div class="card-body">
+                    <h5 class="card-title">@Model.TenSach</h5>
+                    <p class="card-text">@Model.Mota</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Tác giả:</dt>
+                        <dd class="col-sm-9">@Model.IDTacGia</dd>
+
+                        <dt class="col-sm-3">Nhà xuất bản:</dt>
+                        <dd class="col-sm-9">@Model.IDNXB</dd>
+
+                        <dt class="col-sm-3">Thể loại:</dt>
+                        <dd class="col-sm-9">@Model.IDTheLoai</dd>
+
+                        <dt class="col-sm-3">Giá:</dt>
+                        <dd class="col-sm-9">@Model.Gia</dd>
+
+                        <dt class="col-sm-3">Số lượng:</dt>
+                        <dd class="col-sm-9">@Model.SoLuong</dd>
+                    </dl>
+                    <div class="text-center">
+                        @Html.ActionLink("Edit", "Edit", new { id = Model.IDSach }, new { @class = "btn btn-primary" })
+                        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
