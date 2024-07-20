@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace CSharp5Nhom2.Models
 {
@@ -14,9 +15,13 @@ namespace CSharp5Nhom2.Models
         public int SoLuong { get; set; }
         public string HinhAnh { get; set; }
         public string Mota { get; set; }
+        [JsonIgnore]
         public virtual TacGia TacGia { get; set; }
+        [JsonIgnore]
         public virtual NhaXuatBan NhaXuatBan { get; set; }
+        [JsonIgnore]
         public virtual TheLoai TheLoai { get; set; }
+        [JsonIgnore]
         public virtual List<HoaDonChiTiet> HoaDonChiTiets { get; set; } // Thay đổi thành ICollection
     }
 

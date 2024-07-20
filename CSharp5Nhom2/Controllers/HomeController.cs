@@ -1,5 +1,6 @@
 ﻿using CSharp5Nhom2.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
@@ -9,10 +10,12 @@ namespace CSharp5Nhom2.Controllers
     public class HomeController : Controller
     {
         DBSach sach;
+        HttpClient client;
 
         public HomeController()
         {
             sach = new DBSach();
+            client = new HttpClient();
         }
 
         public IActionResult Index()
@@ -25,34 +28,52 @@ namespace CSharp5Nhom2.Controllers
         {
             return View();
         }
-
-        public IActionResult Login(string username, string matkhau)
+        public IActionResult Login()
         {
-            if (username == null && matkhau == null)
+            return View();
+        }
+        public IActionResult LoginH(string username, string matkhau)
+        {
+            try
             {
-                return View();
-            }
-            else
-            {
-                var data = sach.users.FirstOrDefault(p => p.Username == username && p.MatKhau == matkhau);
-                if (data == null)
-                {
-                    TempData["none"] = "Tài khoản hoặc mật khẩu không hợp lệ";
-                    return View(data);
-                }
-                else
-                {
-                    // Lưu username vào session
-                    HttpContext.Session.SetString("login", username);
+                string repostURL = $"https://localhost:7249/api/Home/login?username={username}&matkhau={matkhau}";
+                var client = new HttpClient();
+                var response = client.GetAsync(repostURL).Result;
 
-                    // Lưu IDUser vào session
-                    HttpContext.Session.SetString("IDUser", data.IDUser.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = response.Content.ReadAsStringAsync().Result;
+                    if (responseContent == null)
+                    {
+                        return BadRequest("Dữ liệu phản hồi từ API là null.");
+                    }
+
+                    var userData = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                    var userID = (string)userData?.userID;
+                    if (string.IsNullOrEmpty(userID))
+                    {
+                        return BadRequest("UserID không được trả về từ API hoặc là null.");
+                    }
+
+                    HttpContext.Session.SetString("login", username ?? "unknown");
+                    HttpContext.Session.SetString("IDUser", userID);
 
                     return RedirectToAction("Index", "Home");
                 }
+                else
+                {
+                    return BadRequest("Đăng nhập thất bại.");
+                }
             }
-
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi khi kết nối với API: {ex.Message}");
+            }
         }
+
+
+
+
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
@@ -124,4 +145,5 @@ namespace CSharp5Nhom2.Controllers
         }
 
     }
+
 }

@@ -1,57 +1,52 @@
 ﻿using CSharp5Nhom2.Iservers;
 using CSharp5Nhom2.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Security.Principal;
 
 namespace CSharp5Nhom2.Controllers
 {
     public class UserController : Controller
     {
-        DBSach context;
+        HttpClient client;
 
-        IUserServers _services;
-
-        public UserController(IUserServers services)
+        public UserController()
         {
-            context = new DBSach();
-            _services = services;
+            client = new HttpClient();
         }
         public ActionResult Index()
         {
-            var index = context.users.ToList();
-            return View(index);
+            string repostURL = "https://localhost:7249/api/User/nv-get";
+            var repost = client.GetStringAsync(repostURL).Result;
+            var data = JsonConvert.DeserializeObject<List<User>>(repost);
+            return View(data);
         }
 
         // GET: DongVatController/Details/5
-        public ActionResult Details(string id)
+        public ActionResult Details(Guid id)
         {
-            var details = context.users.Find(id);
-            return View(details);
+            string repostURL = $"https://localhost:7249/api/User/nv-Get-id?id={id}";
+            var repost = client.GetStringAsync(repostURL).Result;
+            var data = JsonConvert.DeserializeObject<User>(repost);
+            return View(data);
         }
 
         // GET: DongVatController/Create
-        public IActionResult Create()
+        public ActionResult Create()
         {
             return View();
         }
 
         // POST: DongVatController/Create
-        [HttpPost]
-        public IActionResult Create(User users)
+        public ActionResult CreateNV(User users)
         {
             try
             {
-                //users.IDUser = Guid.NewGuid();
-                //context.users.Add(users);
-                //context.SaveChanges();
-                //TempData["Status"] = "Tạo tài khoản thành công";
-                //return RedirectToAction("Login");
-
-                _services.CrealUser(users);
-                TempData["Status"] = "Tạo tài khoản thành công";
-                return RedirectToAction("GetAll");
+                string repostURL = $"https://localhost:7249/api/User/nv-post";
+                var repost = client.PostAsJsonAsync(repostURL, users).Result;
+                return RedirectToAction("Index");
             }
-            catch (Exception)
+            catch
             {
                 return BadRequest();
             }
@@ -60,30 +55,32 @@ namespace CSharp5Nhom2.Controllers
         // GET: DongVatController/Edit/5
         public ActionResult Edit(string id)
         {
-            var edit = context.users.Find(id);
-            return View(edit);
+            string repostURL = $"https://localhost:7249/api/User/nv-Get-id?id={id}";
+            var repost = client.GetStringAsync(repostURL).Result;
+            var data = JsonConvert.DeserializeObject<User>(repost);
+            return View(data);
         }
 
         // POST: DongVatController/Edit/5
         [HttpPost]
         public ActionResult Edit(User users)
         {
-            var item = context.users.Find(users.IDUser);
-            item.Username = users.Username;
-            item.MatKhau = users.MatKhau;
-            item.SDT = users.SDT;
-            item.NgaySinh = users.NgaySinh;
-            item.Address = users.Address;
-
-            context.SaveChanges();
-            return RedirectToAction("Index");
+            try
+            {
+                string repostURL = $"https://localhost:7249/api/User/nv-put";
+                var repost = client.PutAsJsonAsync(repostURL, users).Result;
+                return RedirectToAction("Index");
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
 
         public ActionResult Delete(Guid id)
         {
-            var delete = context.users.Find(id);
-            context.Remove(delete);
-            context.SaveChanges();
+            string repostURL = $"https://localhost:7249/api/User/nv-delete?id={id}";
+            var repost = client.DeleteAsync(repostURL).Result;
             return RedirectToAction("Index");
         }
 
@@ -92,40 +89,16 @@ namespace CSharp5Nhom2.Controllers
         {
             return View();
         }
-        [HttpPost]
-        public IActionResult SignUp(User user)
+        public IActionResult SignUpNV(User user)
         {
             try
             {
-                var tontai = context.users.FirstOrDefault(p => p.Username == user.Username);
-                if (tontai != null)
-                {
-                    TempData["acctontai"] = $"Username {user.Username} đã được sử dụng, vui lòng chọn username khác";
-                    return RedirectToAction("Create");
-                }
-                else
-                {
-                    if (user.IDUser == Guid.Empty)
-                    {
-                        user.IDUser = Guid.NewGuid();
-                    }
-                    context.users.Add(user);
-                    GioHang giohang = new GioHang()
-                    {
-                        IDGH = Guid.NewGuid(),
-                        IDUser = user.IDUser,
-                        Status = 1
-                    };
-                    context.gioHangs.Add(giohang);
-                    context.SaveChanges();
-                    TempData["Status"] = "Tạo tài khoản thành công";
-                    return RedirectToAction("Login", "Home");
-                }
-
+                string repostURL = $"https://localhost:7249/api/User/nv-SignUp";
+                var repost = client.PostAsJsonAsync(repostURL, user).Result;
+                return RedirectToAction("Index");
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine(ex.Message);
                 return BadRequest();
             }
 

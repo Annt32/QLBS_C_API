@@ -15,7 +15,7 @@ namespace CSharp5Nhom2
 
             builder.Services.AddSession(option =>
             {
-                option.IdleTimeout = TimeSpan.FromSeconds(12320);
+                option.IdleTimeout = TimeSpan.FromSeconds(600);
             });
             builder.Services.AddHttpContextAccessor();
             var app = builder.Build();

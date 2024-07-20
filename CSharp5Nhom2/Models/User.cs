@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CSharp5Nhom2.Models
 {
@@ -16,9 +17,11 @@ namespace CSharp5Nhom2.Models
         public string SDT { get; set; }
         public DateTime NgaySinh { get; set; }
         public string Address { get; set; }
-        public virtual List<HoaDon> HoaDons { get; set; }
-        public virtual GioHang GioHang { get; set; }
-        public virtual List<GioHangChiTiet> GioHangChiTiets { get; set; }
+        [JsonIgnore]
+        public virtual List<HoaDon>? HoaDons { get; set; }
+        public virtual GioHang? GioHang { get; set; }
+        [JsonIgnore]
+        public virtual List<GioHangChiTiet>? GioHangChiTiets { get; set; }
 
     }
 }

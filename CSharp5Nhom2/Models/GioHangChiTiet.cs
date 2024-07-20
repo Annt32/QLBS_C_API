@@ -1,4 +1,6 @@
-﻿namespace CSharp5Nhom2.Models
+﻿using System.Text.Json.Serialization;
+
+namespace CSharp5Nhom2.Models
 {
     public class GioHangChiTiet
     {
@@ -10,7 +12,9 @@
         public string HinhAnh { get; set; }
         public decimal Gia { get; set; }
         public int Status { get; set; }
+        [JsonIgnore]
         public virtual GioHang GioHang { get; set; }
+        [JsonIgnore]
         public virtual Sach Sach { get; set; }
     }
 }
