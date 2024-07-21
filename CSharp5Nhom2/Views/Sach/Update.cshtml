@@ -10,11 +10,11 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Update">
+        <form asp-action="Update" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="IDSach" class="control-label"></label>
-                <input asp-for="IDSach" class="form-control" />
+                <input asp-for="IDSach" class="form-control" readonly />
                 <span asp-validation-for="IDSach" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -23,18 +23,36 @@
                 <span asp-validation-for="TenSach" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="IDTacGia" class="control-label"></label>
-                <input asp-for="IDTacGia" class="form-control" />
+                <label asp-for="IDTacGia" class="control-label">Tác giả: </label>
+                <select asp-for="IDTacGia" class="form-control">
+                    <option value="">-- Chọn tác giả --</option>
+                    @foreach (var tacGia in ViewBag.TacGiaList)
+                    {
+                        <option value="@tacGia.IDTacGia">@tacGia.TenTacGia</option>
+                    }
+                </select>
                 <span asp-validation-for="IDTacGia" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="IDNXB" class="control-label"></label>
-                <input asp-for="IDNXB" class="form-control" />
+                <label asp-for="IDNXB" class="control-label">Nhà xuất bản: </label>
+                <select asp-for="IDNXB" class="form-control">
+                    <option value="">-- Chọn nhà xuất bản --</option>
+                    @foreach (var nhaXuatBan in ViewBag.NhaXuatBanList)
+                    {
+                        <option value="@nhaXuatBan.IDNXB">@nhaXuatBan.TenNXB</option>
+                    }
+                </select>
                 <span asp-validation-for="IDNXB" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="IDTheLoai" class="control-label"></label>
-                <input asp-for="IDTheLoai" class="form-control" />
+                <label asp-for="IDTheLoai" class="control-label">Thể loại</label>
+                <select asp-for="IDTheLoai" class="form-control">
+                    <option value="">-- Chọn thể loại --</option>
+                    @foreach (var theLoai in ViewBag.TheLoaiList)
+                    {
+                        <option value="@theLoai.IDTheLoai">@theLoai.TenTheLoai</option>
+                    }
+                </select>
                 <span asp-validation-for="IDTheLoai" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -49,8 +67,15 @@
             </div>
             <div class="form-group">
                 <label asp-for="HinhAnh" class="control-label"></label>
-                <input asp-for="HinhAnh" class="form-control" />
+                <input asp-for="HinhAnh" class="form-control" id="HinhAnh" disabled="disabled" />
                 <span asp-validation-for="HinhAnh" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="changeImage" name="changeImage" />
+                <label for="changeImage">Cập nhật hình ảnh</label>
+            </div>
+            <div class="form-group" id="fileInputGroup" style="display:none;">
+                <input type="file" name="newHinhAnh" id="newHinhAnh" class="form-control" />
             </div>
             <div class="form-group">
                 <label asp-for="Mota" class="control-label"></label>
@@ -61,6 +86,13 @@
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
+        <script>
+            document.getElementById('changeImage').addEventListener('change', function () {
+                var isChecked = this.checked;
+                document.getElementById('fileInputGroup').style.display = isChecked ? 'block' : 'none';
+                document.getElementById('HinhAnh').disabled = isChecked ? '' : 'disabled';
+            });
+        </script>
     </div>
 </div>
 
@@ -69,5 +101,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

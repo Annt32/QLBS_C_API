@@ -1,4 +1,5 @@
-﻿using CSharp5Nhom2.Models;
+﻿using API.Services;
+using CSharp5Nhom2.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Diagnostics;
@@ -11,11 +12,13 @@ namespace CSharp5Nhom2.Controllers
     {
         DBSach sach;
         HttpClient client;
+        private readonly TokenService _tokenService;
 
-        public HomeController()
+        public HomeController(TokenService tokenService)
         {
             sach = new DBSach();
             client = new HttpClient();
+            _tokenService = tokenService;
         }
 
         public IActionResult Index()
@@ -54,6 +57,8 @@ namespace CSharp5Nhom2.Controllers
                     {
                         return BadRequest("UserID không được trả về từ API hoặc là null.");
                     }
+                    var token = _tokenService.GenerateToken(username);
+                    HttpContext.Session.SetString("JWToken", token);
 
                     HttpContext.Session.SetString("login", username ?? "unknown");
                     HttpContext.Session.SetString("IDUser", userID);

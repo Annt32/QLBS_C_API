@@ -7,6 +7,6 @@ namespace CSharp5Nhom2.Models
         public string IDNXB { get; set; }
         public string TenNXB { get; set; }
         [JsonIgnore]
-        public virtual List<Sach> Sachs { get; set; }
+        public virtual List<Sach>? Sachs { get; set; }
     }
 }

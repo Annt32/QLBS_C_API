@@ -1,32 +1,44 @@
 ﻿using CSharp5Nhom2.Models;
+using API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
+using Newtonsoft.Json;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+using System.Text;
 
 namespace CSharp5Nhom2.Controllers
 {
     public class SachController : Controller
     {
         DBSach context;
-        public SachController()
+        HttpClient client;
+        private readonly IHttpClientFactory _clientFactory;
+
+        public SachController(IHttpClientFactory clientFactory)
         {
             context = new DBSach();
+            client = new HttpClient();
+            _clientFactory = clientFactory;
+
         }
         public ActionResult Index()
         {
-            var index = context.sachs.ToList();
-            ViewBag.TacGiaList = context.tacGias.ToList();
-
-            return View(index);
+            string repostURL = "https://localhost:7249/api/Sach/sach-get";
+            var repost = client.GetStringAsync(repostURL).Result;
+            var data = JsonConvert.DeserializeObject<List<Sach>>(repost);
+            return View(data);
         }
 
         // GET: DongVatController/Details/5
-        public ActionResult Details(string id)
+        public ActionResult Details(Guid IDSach)
         {
-            var details = context.sachs.Find(id);
-            return View(details);
+            string repostURL = $"https://localhost:7249/api/Sach/sach-Get-id?IDSach={IDSach}";
+            var repost = client.GetStringAsync(repostURL).Result;
+            var data = JsonConvert.DeserializeObject<Sach>(repost);
+            return View(data);
         }
 
-        // GET: DongVatController/Create
         public ActionResult Create()
         {
             ViewBag.TacGiaList = context.tacGias.ToList();
@@ -98,8 +110,9 @@ namespace CSharp5Nhom2.Controllers
             ViewBag.NhaXuatBanList = context.nhaXuatBans.ToList();
             return View(edit);
         }
+
         [HttpPost]
-        public IActionResult Update(Sach sach)
+        public IActionResult Update(Sach sach, IFormFile newHinhAnh, [FromForm] bool changeImage)
         {
             var tacGia = context.tacGias.FirstOrDefault(tg => tg.IDTacGia == sach.IDTacGia);
             var nhaXuatBan = context.nhaXuatBans.FirstOrDefault(nxb => nxb.IDNXB == sach.IDNXB);
@@ -112,116 +125,74 @@ namespace CSharp5Nhom2.Controllers
                 sachInDb.TenSach = sach.TenSach;
                 sachInDb.Gia = sach.Gia;
                 sachInDb.SoLuong = sach.SoLuong;
-                sachInDb.HinhAnh = sach.HinhAnh;
                 sachInDb.Mota = sach.Mota;
                 sachInDb.TacGia = tacGia;
                 sachInDb.NhaXuatBan = nhaXuatBan;
                 sachInDb.TheLoai = theLoai;
 
+                if (changeImage && newHinhAnh != null)
+                {
+                    // Xử lý logic để lưu ảnh mới
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(newHinhAnh.FileName);
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        newHinhAnh.CopyTo(stream);
+                    }
+                    sachInDb.HinhAnh = fileName;
+                }
+
                 context.SaveChanges();
-                return RedirectToAction("Index","Sach");
+                return RedirectToAction("Index", "Sach");
             }
 
             return NotFound();
         }
 
+
+
+
+
         public ActionResult Delete(Guid IDSach)
         {
-            var delete = context.sachs.Find(IDSach);
-            context.Remove(delete);
-            context.SaveChanges();
+            string repostURL = $"https://localhost:7249/api/Sach/sach-delete?IDSach={IDSach}";
+            var repost = client.DeleteAsync(repostURL).Result;
             return RedirectToAction("Index");
         }
-        public IActionResult AddToCart(string idSach, int soLuong)
+        public async Task<IActionResult> AddToCart(string idSach, int soLuong)
         {
-            try
+            //var username = HttpContext.Session.GetString("login");
+            //if (string.IsNullOrEmpty(username))
+            //{
+            //    return RedirectToAction("Login", "Home");
+            //}
+
+            var token = HttpContext.Session.GetString("JWToken");
+
+            if (string.IsNullOrEmpty(token))
             {
-                if (!Guid.TryParse(idSach, out Guid sachId))
-                {
-                    return BadRequest("ID sản phẩm không hợp lệ");
-                }
+                return RedirectToAction("Login", "Home");
+            }
 
-                var username = HttpContext.Session.GetString("login");
-                if (string.IsNullOrEmpty(username))
-                {
-                    return RedirectToAction("Login", "Home");
-                }
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                var user = context.users.FirstOrDefault(u => u.Username == username);
-                if (user == null)
-                {
-                    return BadRequest("Người dùng không tồn tại");
-                }
+                // Sử dụng StringContent để truyền nội dung rỗng
+                var response = await client.PostAsync($"https://localhost:7249/api/Sach/add-to-cart?idSach={idSach}&soLuong={soLuong}", new StringContent(""));
 
-                var gioHang = context.gioHangs.FirstOrDefault(gh => gh.IDUser == user.IDUser);
-                if (gioHang == null)
+                if (response.IsSuccessStatusCode)
                 {
-                    gioHang = new GioHang
-                    {
-                        IDGH = Guid.NewGuid(),
-                        IDUser = user.IDUser,
-                        Status = 1
-                    };
-                    context.gioHangs.Add(gioHang);
-                    context.SaveChanges();
-                }
-
-                var sach = context.sachs.FirstOrDefault(s => s.IDSach == sachId);
-                if (sach == null)
-                {
-                    return BadRequest("Sản phẩm không tồn tại");
-                }
-
-                var cartItem = context.gioHangChiTiets.FirstOrDefault(p => p.IDSach == sachId && p.IDGH == gioHang.IDGH);
-                if (cartItem == null)
-                {
-                    if (soLuong <= 0)
-                    {
-                        TempData[$"error_{sachId}"] = "Nhập số lượng cần mua";
-                        return RedirectToAction("Index", "Home");
-                    }
-                    else
-                    {
-                        if (soLuong > sach.SoLuong)
-                        {
-                            TempData[$"max_{sachId}"] = $"Số lượng trong giỏ hàng đã vượt quá {sach.SoLuong} sản phẩm còn lại";
-                            return RedirectToAction("Index", "Home");
-                        }
-
-                        GioHangChiTiet cartDetails = new GioHangChiTiet()
-                        {
-                            IDGHCT = Guid.NewGuid(),
-                            IDGH = gioHang.IDGH,
-                            IDSach = sachId,
-                            SoLuong = soLuong,
-                            TenSach = sach.TenSach,
-                            HinhAnh = sach.HinhAnh,
-                            Gia = sach.Gia,
-                        };
-                        context.gioHangChiTiets.Add(cartDetails);
-                    }
+                    return RedirectToAction("Index", "Cart");
                 }
                 else
                 {
-                    if (cartItem.SoLuong + soLuong > sach.SoLuong)
-                    {
-                        TempData[$"max_{sachId}"] = $"Số lượng trong giỏ hàng đã vượt quá {sach.SoLuong} sản phẩm còn lại";
-                        return RedirectToAction("Index", "Home");
-                    }
-
-                    cartItem.SoLuong += soLuong;
+                    // Xử lý lỗi ở đây
+                    return RedirectToAction("Index");
                 }
-
-                context.SaveChanges();
-                return RedirectToAction("Index", "Cart");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.InnerException?.Message ?? ex.Message}");
-                TempData["ErrorMessage"] = $"Thêm vào giỏ hàng thất bại. Lỗi: {ex.Message}";
-                return RedirectToAction("Index", "Home");
             }
         }
+
     }
 
 }

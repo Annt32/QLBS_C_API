@@ -16,13 +16,13 @@ namespace CSharp5Nhom2.Models
         public string HinhAnh { get; set; }
         public string Mota { get; set; }
         [JsonIgnore]
-        public virtual TacGia TacGia { get; set; }
+        public virtual TacGia? TacGia { get; set; }
         [JsonIgnore]
-        public virtual NhaXuatBan NhaXuatBan { get; set; }
+        public virtual NhaXuatBan? NhaXuatBan { get; set; }
         [JsonIgnore]
-        public virtual TheLoai TheLoai { get; set; }
+        public virtual TheLoai? TheLoai { get; set; }
         [JsonIgnore]
-        public virtual List<HoaDonChiTiet> HoaDonChiTiets { get; set; } // Thay đổi thành ICollection
+        public virtual List<HoaDonChiTiet>? HoaDonChiTiets { get; set; } // Thay đổi thành ICollection
     }
 
 }

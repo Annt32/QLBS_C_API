@@ -7,7 +7,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class HomeController : ControllerBase
+    public class HomeController : Controller
     {
         DBSach sach;
         public HomeController()

@@ -1,5 +1,10 @@
-using CSharp5Nhom2.Iservers;
+﻿using CSharp5Nhom2.Iservers;
 using CSharp5Nhom2.Servers;
+using API.Services; // Thêm dòng này để nhập TokenService
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using System;
 
 namespace CSharp5Nhom2
 {
@@ -11,7 +16,12 @@ namespace CSharp5Nhom2
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddHttpClient();
             builder.Services.AddTransient<IUserServers, UserServers>();
+
+            // Đăng ký TokenService
+            builder.Services.AddSingleton<TokenService>();
 
             builder.Services.AddSession(option =>
             {
